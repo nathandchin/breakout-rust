@@ -1,5 +1,6 @@
 use raylib::prelude::*;
 
+#[derive(Debug)]
 pub struct Ball {
     pos: Vector2,
     prev_pos: Vector2,
@@ -8,7 +9,7 @@ pub struct Ball {
 }
 
 #[derive(Debug)]
-enum Side {
+pub enum Side {
     Top,
     Bottom,
     Left,
@@ -21,7 +22,7 @@ impl Ball {
             pos: Vector2::new(x, y),
             prev_pos: Vector2::new(x, y),
             radius: 15.0,
-            velocity: Vector2::new(0.05, -0.05),
+            velocity: Vector2::new(0.1, -0.1),
         }
     }
 
@@ -44,18 +45,21 @@ impl Ball {
         None
     }
 
-    pub fn update(&mut self, recs: &Vec<Rectangle>) {
-        for rec in recs {
+    pub fn update(&mut self, recs: &Vec<Rectangle>) -> Option<(usize, Side)> {
+        let mut rv = None;
+        for (i, rec) in recs.iter().enumerate() {
             if let Some(side) = self.get_rect_collision_sider(rec) {
                 match side {
                     Side::Top | Side::Bottom => self.velocity *= Vector2::new(1.0, -1.0),
                     Side::Left | Side::Right => self.velocity *= Vector2::new(-1.0, 1.0),
                 }
+                rv = Some((i, side));
             }
         }
 
         self.prev_pos = self.pos;
         self.pos += self.velocity;
+        rv
     }
 
     pub fn draw(&self, d: &mut RaylibDrawHandle) {

@@ -25,22 +25,27 @@ fn main() {
         Rectangle::new(0.0, 0.0, 0.0, HEIGHT as f32), // Left
         Rectangle::new(WIDTH as f32, 0.0, 0.0, HEIGHT as f32), // Right
     ];
-    let bricks: Vec<Brick> = generate_grid(15, 6, 10.0, 10.0, 20.0, WIDTH as f32)
+    let mut bricks: Vec<Brick> = generate_grid(15, 10, 10.0, 10.0, 20.0, WIDTH as f32)
         .into_iter()
         .flatten()
         .collect();
 
     while !rl.window_should_close() {
         let mut colliders = walls.clone();
+        colliders.push(paddle.rect.clone());
         for brick in &bricks {
             colliders.push(brick.rect.clone());
         }
-        colliders.push(paddle.rect.clone());
 
         let mut d = rl.begin_drawing(&thread);
 
         paddle.update(&mut d);
-        ball.update(&colliders);
+        if let Some((idx, side)) = ball.update(&colliders) {
+            dbg!(idx, side);
+            if idx > walls.len() { // account for the walls plus the paddle
+                bricks.remove(idx - 5);
+            }
+        }
 
         d.clear_background(Color::BLACK);
         paddle.draw(&mut d);
